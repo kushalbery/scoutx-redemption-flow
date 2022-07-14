@@ -1,0 +1,128 @@
+specVersion: 0.0.2
+description: ScoutX
+repository: https://github.com/kushalbery/scoutx-redemption-flow
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: ConditionalTokens
+    network: matic
+    source:
+      address: "0x60D009f6fc93b9a495B6d447FE1d36b2e8873f92"
+      abi: ConditionalTokens
+      startBlock: 30709712
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Condition
+        - FixedProductMarketMaker
+        - Split
+        - Merge
+        - Redemption
+      abis:
+        - name: ConditionalTokens
+          file: ./abis/ConditionalTokens.json
+        - name: ERC20Detailed
+          file: ./abis/ERC20Detailed.json
+      eventHandlers:
+        - event: ConditionPreparation(indexed bytes32,indexed address,indexed bytes32,uint256)
+          handler: handleConditionPreparation
+        - event: ConditionResolution(indexed bytes32,indexed address,indexed bytes32,uint256,uint256[])
+          handler: handleConditionResolution
+        - event: PositionSplit(indexed address,address,indexed bytes32,indexed bytes32,uint256[],uint256)
+          handler: handlePositionSplit
+        - event: PositionsMerge(indexed address,address,indexed bytes32,indexed bytes32,uint256[],uint256)
+          handler: handlePositionsMerge
+        - event: PayoutRedemption(indexed address,indexed address,indexed bytes32,bytes32,uint256[],uint256)
+          handler: handlePayoutRedemption
+      file: ./src/ConditionalTokensMapping.ts
+  - kind: ethereum/contract
+    name: FixedProductMarketMakerFactory
+    network: matic
+    source:
+      address: "0xfD75675dD3e4525226A1cF5424b0e4A89C97F5FE"
+      abi: FixedProductMarketMakerFactory
+      startBlock: 30709712
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - FixedProductMarketMaker
+      abis:
+        - name: FixedProductMarketMakerFactory
+          file: ./abis/FixedProductMarketMakerFactory.json
+        - name: ERC20Detailed
+          file: ./abis/ERC20Detailed.json
+      eventHandlers:
+        - event: FixedProductMarketMakerCreation(indexed address,address,indexed address,indexed address,bytes32,uint256)
+          handler: handleFixedProductMarketMakerCreation
+      file: ./src/FixedProductMarketMakerFactoryMapping.ts
+templates:
+  - name: FixedProductMarketMaker
+    kind: ethereum/contract
+    network: matic
+    source:
+      abi: FixedProductMarketMaker
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Account
+        - FixedProductMarketMaker
+        - FpmmFundingAddition
+        - FpmmFundingRemoval
+        - FpmmPoolMembership
+        - Transaction
+        - MarketPosition
+        - LongShortCurrentPrice
+      abis:
+        - name: FixedProductMarketMaker
+          file: ./abis/FixedProductMarketMaker.json
+        - name: ERC20Detailed
+          file: ./abis/ERC20Detailed.json
+      eventHandlers:
+        - event: FPMMBuy(indexed address,uint256,uint256,indexed uint256,uint256,bytes32,uint256,uint256,indexed address,uint256,uint256[])
+          handler: handleBuy
+        - event: FPMMCreated(indexed address,string,string,address,address,bytes32,uint256)
+          handler: handleFPMMCreated
+        - event: FPMMFundingAdded(indexed address,uint256[],uint256,uint256,uint256,uint256,indexed bytes32,indexed address,uint256[])
+          handler: handleFundingAdded
+        - event: FPMMSell(indexed address,uint256,uint256,indexed uint256,uint256,bytes32,uint256,uint256,indexed address,uint256,uint256[])
+          handler: handleSell
+        - event: FeesWithdraw(uint256,address,uint256) # New
+          handler: handleFeesWithdraw
+        - event: LongShortCurrentPrice(uint256,uint256,indexed uint256,indexed bytes32,indexed address,uint256,uint256,uint256,uint256[])
+          handler: handleCurrentPrice
+        - event: OwnershipTransferred(indexed address,indexed address) # New
+          handler: handleOwnershipTransferred
+        - event: PoolBalancesTransfered(address,uint256[],uint256,uint256,uint256,bytes32,address) # New
+          handler: handlePoolBalancesTransfered
+        - event: PlaySeason(uint256,uint256,indexed uint256,indexed bytes32,indexed address,uint256,uint256,uint256,uint256[])
+          handler: handlePlaySeason
+        - event: PausedSeason(uint256,uint256,indexed uint256,indexed bytes32,indexed address,uint256,uint256,uint256,uint256[])
+          handler: handlePausedSeason
+        - event: ConcludedSeason(uint256,uint256,indexed uint256,indexed bytes32,indexed address,uint256,uint256,uint256,uint256[])
+          handler: handleConcludedSeason
+        # - event: Transfer(indexed address,indexed address,uint256)
+        #   handler: handlePoolShareTransfer
+        # - event: FPMMFundingRemoved(indexed address,uint256[],uint256,uint256)
+        # handler: handleFundingRemoved
+      file: ./src/FixedProductMarketMakerMapping.ts
+  - name: ERC20Detailed
+    kind: ethereum/contract
+    network: matic
+    source:
+      abi: ERC20Detailed
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities: []
+      abis:
+        - name: ERC20Detailed
+          file: ./abis/ERC20Detailed.json
+      file: ./src/empty.ts
